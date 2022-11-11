@@ -1,6 +1,24 @@
 #include <stdexcept>
 #include <Source/PricingEngine/BlackCalculator.h>
 #include <Source/Math/NormalDistribution.h>
+#include <Source/DesignPattern/VisitorPattern.h>
+
+class BlackCalculator::Builder : public AcyclicVisitor,
+								public Visitor<Payoff>,
+								public Visitor<PlainVanillaPayoff>,
+								public Visitor<CashOrNothingPayoff>,
+								public Visitor<AssetOrNothingPayoff> {
+public:
+	Builder(BlackCalculator& black) : black_(black) { }
+
+	void visit(Payoff&);
+	void visit(PlainVanillaPayoff&);
+	void visit(CashOrNothingPayoff&);
+	void visit(AssetOrNothingPayoff&);
+
+private:
+	BlackCalculator& black_;
+};
 
 void BlackCalculator::initialize(const std::shared_ptr<StrikedTypePayoff>& payoff)
 {

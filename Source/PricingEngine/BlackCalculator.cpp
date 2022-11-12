@@ -3,6 +3,8 @@
 #include <Source/Math/NormalDistribution.h>
 #include <Source/DesignPattern/VisitorPattern.h>
 
+//Builder 클래스를 visitor로 정의하고, 구현을 cpp 파일에 두는 것으로 visit 함수가 추가될 때마다 새로 컴파일해야 되는 것을 방지.
+
 class BlackCalculator::Builder : public AcyclicVisitor,
 								public Visitor<Payoff>,
 								public Visitor<PlainVanillaPayoff>,
@@ -25,10 +27,12 @@ BlackCalculator::BlackCalculator(const std::shared_ptr<StrikedTypePayoff>& payof
 
 void BlackCalculator::initialize(const std::shared_ptr<StrikedTypePayoff>& payoff)
 {
+	OptionType type = payoff->optionType();
 	d1_ = (std::log(forward_ / strike_) + 0.5 * variance_) / stddev_;
 	d2_ = (d1_ - stddev_);
-	Nd1_ = normcdf(payoff->optionType() * d1_), Nd2_ = normcdf(payoff->optionType() * d2_);
+	Nd1_ = normcdf(type * d1_), Nd2_ = normcdf(type * d2_);
 	nd1_ = normpdf(d1_), nd2_ = normpdf(d2_);
+	DNd1Dd1_ = type * normpdf(type * d1_), DNd2Dd2_ = type * normpdf(type * d2_);
 
 	Builder builder(*this);
 	payoff->accept(builder);

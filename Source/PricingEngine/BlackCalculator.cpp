@@ -45,20 +45,24 @@ void BlackCalculator::Builder::visit(Payoff& payoff)
 
 void BlackCalculator::Builder::visit(PlainVanillaPayoff& payoff)
 {
-	black_.alpha_ = payoff.optionType() * black_.Nd1_, black_.beta_ = payoff.optionType() * black_.Nd2_;
+	OptionType type = payoff.optionType();
+	black_.alpha_ = type * black_.Nd1_, black_.beta_ = type * black_.Nd2_;
+	black_.x_ = -black_.strike_;
 }
 
 void BlackCalculator::Builder::visit(CashOrNothingPayoff& payoff)
 {
-	black_.alpha_ = 0.0, black_.beta_ = payoff.cashpayoff() * black_.Nd2_;
+	black_.alpha_ = 0.0, black_.beta_ = black_.Nd2_;
+	black_.x_ = payoff.cashpayoff();
 }
 
 void BlackCalculator::Builder::visit(AssetOrNothingPayoff& payoff)
 {
 	black_.alpha_ = payoff.optionType() * black_.Nd1_, black_.beta_ = 0.0;
+	black_.x_ = 0.0;
 }
 
 double BlackCalculator::value() const
 {
-	return discount_ * (forward_ * alpha_ - strike_ * beta_);
+	return discount_ * (forward_ * alpha_ + x_ * beta_);
 }

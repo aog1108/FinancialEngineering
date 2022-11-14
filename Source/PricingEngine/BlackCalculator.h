@@ -26,5 +26,7 @@ private:
 	double Nd1_, Nd2_;
 	double nd1_, nd2_;
 	double alpha_, beta_, x_;
+
 	double DNd1Dd1_, DNd2Dd2_;
+	double DalphaDd1_, DbetaDd2_;
 };

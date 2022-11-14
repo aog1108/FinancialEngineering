@@ -6,6 +6,8 @@
 #include "Times/DayCounter.h"
 #include "Times/DateHandling.h"
 #include "Times/JointCalendar.h"
+#include "Math/NormalDistribution.h"
+#include "PricingEngine/BlackCalculator.h"
 
 void TestDate()
 {
@@ -193,4 +195,55 @@ void TestDayCounter()
 	std::cout << "30/360B DayCount: " << dc.DayCount(d1, d2) << std::endl;
 	std::cout << "30/360B CVG: " << dc.Getcvg(d1, d2) << std::endl;
 	std::cout << "30/360B CVG: " << dc.Getcvg(d2, d1) << std::endl;
+}
+
+void TestNormalDistribution()
+{
+	NormalDistribution dist(0.0, 1.0);
+	
+	std::cout << dist.cdf(0.0) << std::endl;
+	std::cout << dist.pdf(0.0) << std::endl;
+	std::cout << dist.cdf(1.96) << std::endl;
+	std::cout << dist.pdf(1.96) << std::endl;
+}
+
+void TestBlackCalculator()
+{
+	std::shared_ptr<PlainVanillaPayoff> payoff1(new PlainVanillaPayoff(Call, 355.0));
+	double F = 350 * std::exp(0.02 - 0.015);
+	double discount = std::exp(-0.02);
+	double stddev = 0.2;
+	double variance = stddev * stddev;
+	BlackCalculator calculator(payoff1, F, discount, stddev, variance);
+	
+	std::cout << "PlainVanilla Call Value: " << calculator.value() << std::endl;
+	std::cout << "PlainVanilla Call Delta: " << calculator.delta(350.0) << std::endl;
+
+	std::shared_ptr<CashOrNothingPayoff> payoff2(new CashOrNothingPayoff(Call, 355.0, 1.0));
+	BlackCalculator calculator2(payoff2, F, discount, stddev, variance);
+
+	std::cout << "CashOrNothing Call Value: " << calculator2.value() << std::endl;
+	std::cout << "CashOrNothing Call Delta: " << calculator2.delta(350.0) << std::endl;
+
+	std::shared_ptr<AssetOrNothingPayoff> payoff3(new AssetOrNothingPayoff(Call, 355.0));
+	BlackCalculator calculator3(payoff3, F, discount, stddev, variance);
+
+	std::cout << "AssetOrNothing Call Value: " << calculator3.value() << std::endl;
+	std::cout << "AssetOrNothing Call Delta: " << calculator3.delta(350.0) << std::endl;
+
+	payoff1 = std::make_shared<PlainVanillaPayoff>(Put, 355.0);
+	payoff2 = std::make_shared<CashOrNothingPayoff>(Put, 355.0, 1.0);
+	payoff3 = std::make_shared<AssetOrNothingPayoff>(Put, 355.0);
+	calculator = BlackCalculator(payoff1, F, discount, stddev, variance);
+	calculator2 = BlackCalculator(payoff2, F, discount, stddev, variance);
+	calculator3 = BlackCalculator(payoff3, F, discount, stddev, variance);
+
+	std::cout << "PlainVanilla Put Value: " << calculator.value() << std::endl;
+	std::cout << "PlainVanilla Put Delta: " << calculator.delta(350.0) << std::endl;
+
+	std::cout << "CashOrNothing Put Value: " << calculator2.value() << std::endl;
+	std::cout << "CashOrNothing Put Delta: " << calculator2.delta(350.0) << std::endl;
+
+	std::cout << "AssetOrNothing Put Value: " << calculator3.value() << std::endl;
+	std::cout << "AssetOrNothing Put Delta: " << calculator3.delta(350.0) << std::endl;
 }

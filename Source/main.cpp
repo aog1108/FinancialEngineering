@@ -4,8 +4,10 @@ int main() {
 	//TestDate();
 	//TestBoostGregorian();
 	//TestCalendar();
-	TestJointCalendar();
+	//TestJointCalendar();
 	//TestDayCounter();
+	//TestNormalDistribution();
+	TestBlackCalculator();
 
 	return 0;
 }

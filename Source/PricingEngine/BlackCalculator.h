@@ -10,10 +10,10 @@ public:
 
 	double value() const;
 	double delta(double S) const;
-	double gamma() const;
-	double vega() const;
+	double gamma(double S) const;
+	double vega(double ttm) const;
 	double theta() const;
-	double rho() const;
+	double rho(double ttm) const;
 
 private:
 	class Builder;
@@ -28,5 +28,7 @@ private:
 	double alpha_, beta_, x_;
 
 	double DNd1Dd1_, DNd2Dd2_;
+	double D2Nd1Dd12_, D2Nd2Dd22_;
 	double DalphaDd1_, DbetaDd2_;
+	double D2alphaDd12_, D2betaDd22_;
 };

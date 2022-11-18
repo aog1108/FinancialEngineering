@@ -218,18 +218,27 @@ void TestBlackCalculator()
 	
 	std::cout << "PlainVanilla Call Value: " << calculator.value() << std::endl;
 	std::cout << "PlainVanilla Call Delta: " << calculator.delta(350.0) << std::endl;
+	std::cout << "PlainVanilla Call Gamma: " << calculator.gamma(350.0) << std::endl;
+	std::cout << "PlainVanilla Call Vega: " << calculator.vega(1.0) << std::endl;
+	std::cout << "PlainVanilla Call Rho: " << calculator.rho(1.0) << std::endl;
 
 	std::shared_ptr<CashOrNothingPayoff> payoff2(new CashOrNothingPayoff(Call, 355.0, 1.0));
 	BlackCalculator calculator2(payoff2, F, discount, stddev, variance);
 
 	std::cout << "CashOrNothing Call Value: " << calculator2.value() << std::endl;
 	std::cout << "CashOrNothing Call Delta: " << calculator2.delta(350.0) << std::endl;
+	std::cout << "CashOrNothing Call Gamma: " << calculator2.gamma(350.0) << std::endl;
+	std::cout << "CashOrNothing Call Vega: " << calculator2.vega(1.0) << std::endl;
+	std::cout << "CashOrNothing Call Rho: " << calculator2.rho(1.0) << std::endl;
 
 	std::shared_ptr<AssetOrNothingPayoff> payoff3(new AssetOrNothingPayoff(Call, 355.0));
 	BlackCalculator calculator3(payoff3, F, discount, stddev, variance);
 
 	std::cout << "AssetOrNothing Call Value: " << calculator3.value() << std::endl;
 	std::cout << "AssetOrNothing Call Delta: " << calculator3.delta(350.0) << std::endl;
+	std::cout << "AssetOrNothing Call Gamma: " << calculator3.gamma(350.0) << std::endl;
+	std::cout << "AssetOrNothing Call Vega: " << calculator3.vega(1.0) << std::endl;
+	std::cout << "AssetOrNothing Call Rho: " << calculator3.rho(1.0) << std::endl;
 
 	payoff1 = std::make_shared<PlainVanillaPayoff>(Put, 355.0);
 	payoff2 = std::make_shared<CashOrNothingPayoff>(Put, 355.0, 1.0);
@@ -240,10 +249,19 @@ void TestBlackCalculator()
 
 	std::cout << "PlainVanilla Put Value: " << calculator.value() << std::endl;
 	std::cout << "PlainVanilla Put Delta: " << calculator.delta(350.0) << std::endl;
+	std::cout << "PlainVanilla Put Gamma: " << calculator.gamma(350.0) << std::endl;
+	std::cout << "PlainVanilla Put Vega: " << calculator.vega(1.0) << std::endl;
+	std::cout << "PlainVanilla Put Rho: " << calculator.rho(1.0) << std::endl;
 
 	std::cout << "CashOrNothing Put Value: " << calculator2.value() << std::endl;
 	std::cout << "CashOrNothing Put Delta: " << calculator2.delta(350.0) << std::endl;
+	std::cout << "CashOrNothing Put Gamma: " << calculator2.gamma(350.0) << std::endl;
+	std::cout << "CashOrNothing Put Vega: " << calculator2.vega(1.0) << std::endl;
+	std::cout << "CashOrNothing Put Rho: " << calculator2.rho(1.0) << std::endl;
 
 	std::cout << "AssetOrNothing Put Value: " << calculator3.value() << std::endl;
 	std::cout << "AssetOrNothing Put Delta: " << calculator3.delta(350.0) << std::endl;
+	std::cout << "AssetOrNothing Put Gamma: " << calculator3.gamma(350.0) << std::endl;
+	std::cout << "AssetOrNothing Put Vega: " << calculator3.vega(1.0) << std::endl;
+	std::cout << "AssetOrNothing Put Rho: " << calculator3.rho(1.0) << std::endl;
 }

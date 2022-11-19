@@ -12,7 +12,7 @@ public:
 	double delta(double S) const;
 	double gamma(double S) const;
 	double vega(double ttm) const;
-	double theta() const;
+	double theta(double spot, double ttm) const;
 	double rho(double ttm) const;
 
 private:

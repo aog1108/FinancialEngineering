@@ -4,7 +4,7 @@
 #include <Source/DesignPattern/VisitorPattern.h>
 
 //Builder 클래스를 visitor로 정의하고, 구현을 cpp 파일에 두는 것으로 visit 함수가 추가될 때마다 새로 컴파일해야 되는 것을 방지.
-//vega rho 구현, gamma용 멤버변수 추가.
+
 class BlackCalculator::Builder : public AcyclicVisitor,
 								public Visitor<Payoff>,
 								public Visitor<PlainVanillaPayoff>,
@@ -94,10 +94,11 @@ double BlackCalculator::gamma(double S) const
 	double DforwardDS = forward_ / S;
 	double Dd1DS = 1 / (stddev_ * forward_) * DforwardDS, Dd2DS = Dd1DS;
 	double D2d1DS2 = -1 / (S * S * stddev_), D2d2DS2 = D2d1DS2;
-	double temp1 = forward_ * (D2alphaDd12_ * Dd1DS * Dd1DS + DalphaDd1_ * D2d1DS2);
-	double temp2 = x_ * (D2betaDd22_ * Dd2DS * Dd2DS + DbetaDd2_ * D2d2DS2);
+	double temp1 = DforwardDS * DalphaDd1_ * Dd1DS;
+	double temp2 = DforwardDS * DalphaDd1_ * Dd1DS + forward_ * (D2alphaDd12_ * Dd1DS * Dd1DS + DalphaDd1_ * D2d1DS2);
+	double temp3 = x_ * (D2betaDd22_ * Dd2DS * Dd2DS + DbetaDd2_ * D2d2DS2);
 
-	return discount_ * (temp1 + temp2);
+	return discount_ * (temp1 + temp2 + temp3);
 }
 
 double BlackCalculator::vega(double ttm) const
@@ -105,7 +106,21 @@ double BlackCalculator::vega(double ttm) const
 	double Dd1Dsigma = std::sqrt(ttm) * (-std::log(forward_ / strike_) / (variance_)+1 / 2.0);
 	double Dd2Dsigma = Dd1Dsigma - std::sqrt(ttm);
 
-	return discount_ * (forward_ * DalphaDd1_ * Dd1Dsigma + DbetaDd2_ * Dd2Dsigma);
+	return discount_ * (forward_ * DalphaDd1_ * Dd1Dsigma + x_ * DbetaDd2_ * Dd2Dsigma);
+}
+	
+double BlackCalculator::theta(double spot, double ttm) const
+{
+	double DdiscountDt = -1 / ttm * std::log(discount_) * discount_;
+	double DFDt = -forward_ * 1 / ttm * std::log(forward_ / spot);
+	double Dd1Dt = -1 / (stddev_ * ttm) * (-1 / 2.0 * std::log(spot / strike_) + 1 / 2.0 * std::log(forward_ / spot) + variance_ / 4);
+	double Dd2Dt = Dd1Dt + stddev_ / (2 * ttm);
+	double temp1 = DdiscountDt * value() / discount_;
+	double temp2 = DFDt * alpha_;
+	double temp3 = forward_ * DalphaDd1_ * Dd1Dt;
+	double temp4 = x_ * DbetaDd2_ * Dd2Dt;
+
+	return temp1 + discount_ * (temp2 + temp3 + temp4);
 }
 
 double BlackCalculator::rho(double ttm) const

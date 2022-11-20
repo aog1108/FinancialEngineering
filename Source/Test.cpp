@@ -228,6 +228,7 @@ void TestBlackCalculator()
 	std::cout << "PlainVanilla Call Vega: " << calculator.vega(ttm) << std::endl;
 	std::cout << "PlainVanilla Call Theta: " << calculator.theta(S, ttm) << std::endl;
 	std::cout << "PlainVanilla Call Rho: " << calculator.rho(ttm) << std::endl;
+	std::cout << "PlainVanilla Call Epsilon: " << calculator.epsilon(ttm) << std::endl;
 
 	std::shared_ptr<CashOrNothingPayoff> payoff2(new CashOrNothingPayoff(Call, K, 1.0));
 	BlackCalculator calculator2(payoff2, F, discount, stddev, variance);
@@ -238,6 +239,7 @@ void TestBlackCalculator()
 	std::cout << "CashOrNothing Call Vega: " << calculator2.vega(ttm) << std::endl;
 	std::cout << "CashOrNothing Call Theta: " << calculator2.theta(S, ttm) << std::endl;
 	std::cout << "CashOrNothing Call Rho: " << calculator2.rho(ttm) << std::endl;
+	std::cout << "CashOrNothing Call Epsilon: " << calculator2.epsilon(ttm) << std::endl;
 
 	std::shared_ptr<AssetOrNothingPayoff> payoff3(new AssetOrNothingPayoff(Call, K));
 	BlackCalculator calculator3(payoff3, F, discount, stddev, variance);
@@ -248,6 +250,7 @@ void TestBlackCalculator()
 	std::cout << "AssetOrNothing Call Vega: " << calculator3.vega(ttm) << std::endl;
 	std::cout << "AssetOrNothing Call Theta: " << calculator3.theta(S, ttm) << std::endl;
 	std::cout << "AssetOrNothing Call Rho: " << calculator3.rho(ttm) << std::endl;
+	std::cout << "AssetOrNothing Call Epsilon: " << calculator3.epsilon(ttm) << std::endl;
 
 	payoff1 = std::make_shared<PlainVanillaPayoff>(Put,2452);
 	payoff2 = std::make_shared<CashOrNothingPayoff>(Put, 2452, 1.0);
@@ -262,6 +265,7 @@ void TestBlackCalculator()
 	std::cout << "PlainVanilla Put Vega: " << calculator.vega(ttm) << std::endl;
 	std::cout << "PlainVanilla Put Theta: " << calculator.theta(S, ttm) << std::endl;
 	std::cout << "PlainVanilla Put Rho: " << calculator.rho(ttm) << std::endl;
+	std::cout << "PlainVanilla Put Epsilon: " << calculator.epsilon(ttm) << std::endl;
 
 	std::cout << "CashOrNothing Put Value: " << calculator2.value() << std::endl;
 	std::cout << "CashOrNothing Put Delta: " << calculator2.delta(S) << std::endl;
@@ -269,6 +273,7 @@ void TestBlackCalculator()
 	std::cout << "CashOrNothing Put Vega: " << calculator2.vega(ttm) << std::endl;
 	std::cout << "CashOrNothing Put Theta: " << calculator2.theta(S, ttm) << std::endl;
 	std::cout << "CashOrNothing Put Rho: " << calculator2.rho(ttm) << std::endl;
+	std::cout << "CashOrNothing Put Epsilon: " << calculator2.epsilon(ttm) << std::endl;
 
 	std::cout << "AssetOrNothing Put Value: " << calculator3.value() << std::endl;
 	std::cout << "AssetOrNothing Put Delta: " << calculator3.delta(S) << std::endl;
@@ -276,4 +281,5 @@ void TestBlackCalculator()
 	std::cout << "AssetOrNothing Put Vega: " << calculator3.vega(ttm) << std::endl;
 	std::cout << "AssetOrNothing Put Theta: " << calculator3.theta(S, ttm) << std::endl;
 	std::cout << "AssetOrNothing Put Rho: " << calculator3.rho(ttm) << std::endl;
+	std::cout << "AssetOrNothing Put Epsilon: " << calculator3.epsilon(ttm) << std::endl;
 }

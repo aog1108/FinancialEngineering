@@ -14,6 +14,7 @@ public:
 	double vega(double ttm) const;
 	double theta(double spot, double ttm) const;
 	double rho(double ttm) const;
+	double epsilon(double ttm) const;
 
 private:
 	class Builder;

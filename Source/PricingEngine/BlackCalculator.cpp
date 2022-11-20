@@ -132,3 +132,11 @@ double BlackCalculator::rho(double ttm) const
 
 	return temp1 + temp2;
 }
+
+double BlackCalculator::epsilon(double ttm) const
+{
+	double DforwardDq = -ttm * forward_;
+	double Dd1Dq = -ttm / stddev_, Dd2Dq = Dd1Dq;
+
+	return discount_ * (DforwardDq * alpha_ + forward_ * DalphaDd1_ * Dd1Dq + x_ * DbetaDd2_ * Dd2Dq);
+}

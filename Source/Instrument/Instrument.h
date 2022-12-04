@@ -1,8 +1,7 @@
 #pragma once
 #include <memory>
 
-class Instrument {
-public:
+struct Instrument {
 	Instrument() = default;
 	virtual ~Instrument() = default;
 };

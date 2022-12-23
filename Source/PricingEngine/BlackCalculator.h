@@ -16,6 +16,12 @@ public:
 	double rho(double ttm) const;
 	double epsilon(double ttm) const;
 
+	double forward() const;
+	double strike() const;
+	double discount() const;
+	double stddev() const;
+	double variance() const;
+
 private:
 	class Builder;
 

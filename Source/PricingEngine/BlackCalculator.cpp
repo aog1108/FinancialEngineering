@@ -140,3 +140,28 @@ double BlackCalculator::epsilon(double ttm) const
 
 	return discount_ * (DforwardDq * alpha_ + forward_ * DalphaDd1_ * Dd1Dq + x_ * DbetaDd2_ * Dd2Dq);
 }
+
+double BlackCalculator::forward() const
+{
+	return forward_;
+}
+
+double BlackCalculator::strike() const
+{
+	return strike_;
+}
+
+double BlackCalculator::discount() const
+{
+	return discount_;
+}
+
+double BlackCalculator::stddev() const
+{
+	return stddev_;
+}
+
+double BlackCalculator::variance() const
+{
+	return variance_;
+}

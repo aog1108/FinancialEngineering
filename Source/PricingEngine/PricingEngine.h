@@ -16,14 +16,27 @@ public:
 	virtual ~PricingEngine() = default;
 	virtual void calculate() = 0;
 
-	explicit PricingEngine(const T& instrument) : instrument_(instrument) { }
+	explicit PricingEngine(const T& instrument) : instrument_(instrument), IsCalculated_(false) { }
 
-	void setupInstruments(const T& instrument) { instrument_ = instrument; }
-	void reset() { results_.reset(); }
+	void setupInstruments(const T& instrument) 
+	{ 
+		IsCalculated_ = false;
+		instrument_ = instrument; 
+	}
+
+	void reset() 
+	{ 
+		IsCalculated_ = false;
+		results_.reset(); 
+	}
+
+	const Results& GetResults() const { return results_; }
 	
 protected:
 	T instrument_;
 	Results results_;
+
+	bool IsCalculated_;
 };
 
 //AnalyticPricingEngine은 추상클래스. 파생클래스는 Instrument와 Calculator의 템플릿을 지정해서 상속받을 것.
@@ -33,9 +46,7 @@ template <typename T, typename AnalyticFormCalculator>
 class AnalyticPricingEngine : public PricingEngine<T> {
 public:
 	AnalyticPricingEngine() = default;
-	AnalyticPricingEngine(const T& instrument) : PricingEngine(instrument) { }
-
-	virtual void calculate() = 0;
+	AnalyticPricingEngine(const T& instrument) : PricingEngine<T>(instrument) { }
 
 protected:
 	virtual void setupCalculator() = 0;

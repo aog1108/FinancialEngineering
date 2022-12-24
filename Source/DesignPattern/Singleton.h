@@ -8,10 +8,11 @@ public:
 		static T instance;
 		return instance;
 	}
+	
+protected:
+	Singleton() = default;
 
 private:
-	Singleton() = default;
-	Singleton(const Singleton&) = default;
-	Singleton& operator=(const Singleton&) = default;
-	~Singleton() = default;
+	Singleton(const Singleton&) = delete;
+	Singleton& operator=(const Singleton&) = delete;
 };

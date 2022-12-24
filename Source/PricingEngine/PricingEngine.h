@@ -16,24 +16,24 @@ public:
 	virtual ~PricingEngine() = default;
 	virtual void calculate() = 0;
 
-	explicit PricingEngine(const T& instrument) : instrument_(instrument), IsCalculated_(false) { }
+	explicit PricingEngine(const std::shared_ptr<T>& instrument) : instrument_(instrument), IsCalculated_(false) { }
 
-	void setupInstruments(const T& instrument) 
-	{ 
+	void setupInstruments(const std::shared_ptr<T>& instrument)
+	{
 		IsCalculated_ = false;
-		instrument_ = instrument; 
+		instrument_ = instrument;
 	}
 
-	void reset() 
-	{ 
+	virtual void reset()
+	{
 		IsCalculated_ = false;
-		results_.reset(); 
+		results_.reset();
 	}
 
 	const Results& GetResults() const { return results_; }
-	
+
 protected:
-	T instrument_;
+	std::shared_ptr<T> instrument_;
 	Results results_;
 
 	bool IsCalculated_;
@@ -46,10 +46,18 @@ template <typename T, typename AnalyticFormCalculator>
 class AnalyticPricingEngine : public PricingEngine<T> {
 public:
 	AnalyticPricingEngine() = default;
-	AnalyticPricingEngine(const T& instrument) : PricingEngine<T>(instrument) { }
+	AnalyticPricingEngine(const std::shared_ptr<T>& instrument) : PricingEngine<T>(instrument) { }
+
+	void reset()
+	{
+		PricingEngine<T>::IsCalculated_ = false;
+		IsSetup_ = false;
+		PricingEngine<T>::results_.reset();
+	}
 
 protected:
 	virtual void setupCalculator() = 0;
 
 	AnalyticFormCalculator calculator_;
+	bool IsSetup_;
 };

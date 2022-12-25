@@ -8,6 +8,9 @@
 #include "Times/JointCalendar.h"
 #include "Math/NormalDistribution.h"
 #include "PricingEngine/BlackCalculator.h"
+#include "Settings.h"
+#include "Instrument/EuropeanOption.h"
+#include "PricingEngine/BlackEuropeanOptionEngine.h"
 
 void TestDate()
 {
@@ -282,4 +285,96 @@ void TestBlackCalculator()
 	std::cout << "AssetOrNothing Put Theta: " << calculator3.theta(S, ttm) << std::endl;
 	std::cout << "AssetOrNothing Put Rho: " << calculator3.rho(ttm) << std::endl;
 	std::cout << "AssetOrNothing Put Epsilon: " << calculator3.epsilon(ttm) << std::endl;
+}
+
+void TestBlackEuropeanEngine()
+{
+	Settings::get().ValueDate() = Date(2020, 6, 4);
+	std::shared_ptr<DayCounter> dc = std::make_shared<DayCounter>(ACT365Fixed);
+	std::shared_ptr<ICalendar> cal = std::make_shared<Calendar>();
+	double K = 2452;
+	std::shared_ptr<PlainVanillaPayoff> payoff1 = std::make_shared<PlainVanillaPayoff>(PlainVanillaPayoff(Call, K));
+	std::shared_ptr<EuropeanExercise> exercise = std::make_shared<EuropeanExercise>(EuropeanExercise(Date(2023, 3, 2)));
+	std::shared_ptr<EuropeanOption> option = std::make_shared<EuropeanOption>(EuropeanOption(cal, dc, payoff1, exercise));
+
+	BlackEuropeanOptionEngine engine(option, 2553, 0.02, 0.015, 0.3543);
+	engine.calculate();
+	Results results = engine.GetResults();
+
+	std::cout << std::fixed;
+	std::cout.precision(13);
+	std::cout << "PlainVanilla Call Value: " << results.value_ << std::endl;
+	std::cout << "PlainVanilla Call Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "PlainVanilla Call Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "PlainVanilla Call Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "PlainVanilla Call Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "PlainVanilla Call Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
+	std::cout << "PlainVanilla Call Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+
+	std::shared_ptr<CashOrNothingPayoff> payoff2 = std::make_shared<CashOrNothingPayoff>(CashOrNothingPayoff(Call, K, 1.0));
+	std::shared_ptr<EuropeanOption> option2 = std::make_shared<EuropeanOption>(EuropeanOption(cal, dc, payoff2, exercise));
+	engine.setupInstruments(option2);
+	engine.calculate();
+	results = engine.GetResults();
+
+	std::cout << "CashOrNothing Call Value: " << results.value_ << std::endl;
+	std::cout << "CashOrNothing Call Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "CashOrNothing Call Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "CashOrNothing Call Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "CashOrNothing Call Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "CashOrNothing Call Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
+	std::cout << "CashOrNothing Call Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+
+	std::shared_ptr<AssetOrNothingPayoff> payoff3 = std::make_shared<AssetOrNothingPayoff>(AssetOrNothingPayoff(Call, K));
+	std::shared_ptr<EuropeanOption> option3 = std::make_shared<EuropeanOption>(EuropeanOption(cal, dc, payoff3, exercise));
+	engine.setupInstruments(option3);
+	engine.calculate();
+	results = engine.GetResults();
+
+	std::cout << "AssetOrNothing Call Value: " << results.value_ << std::endl;
+	std::cout << "AssetOrNothing Call Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "AssetOrNothing Call Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "AssetOrNothing Call Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "AssetOrNothing Call Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "AssetOrNothing Call Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
+	std::cout << "AssetOrNothing Call Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+
+	option->payoff_ = std::make_shared<PlainVanillaPayoff>(PlainVanillaPayoff(Put, K));
+	engine.setupInstruments(option);
+	engine.calculate();
+	results = engine.GetResults();
+
+	std::cout << "PlainVanilla Put Value: " << results.value_ << std::endl;
+	std::cout << "PlainVanilla Put Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "PlainVanilla Put Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "PlainVanilla Put Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "PlainVanilla Put Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "PlainVanilla Put Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
+	std::cout << "PlainVanilla Put Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+
+	option2->payoff_ = std::make_shared<CashOrNothingPayoff>(CashOrNothingPayoff(Put, K, 1.0));
+	engine.setupInstruments(option2);
+	engine.calculate();
+	results = engine.GetResults();
+
+	std::cout << "CashOrNothing Put Value: " << results.value_ << std::endl;
+	std::cout << "CashOrNothing Put Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "CashOrNothing Put Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "CashOrNothing Put Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "CashOrNothing Put Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "CashOrNothing Put Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
+	std::cout << "CashOrNothing Put Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+
+	option3->payoff_ = std::make_shared<AssetOrNothingPayoff>(AssetOrNothingPayoff(Put, K));
+	engine.setupInstruments(option3);
+	engine.calculate();
+	results = engine.GetResults();
+
+	std::cout << "AssetOrNothing Put Value: " << results.value_ << std::endl;
+	std::cout << "AssetOrNothing Put Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "AssetOrNothing Put Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "AssetOrNothing Put Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "AssetOrNothing Put Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "AssetOrNothing Put Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
+	std::cout << "AssetOrNothing Put Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
 }

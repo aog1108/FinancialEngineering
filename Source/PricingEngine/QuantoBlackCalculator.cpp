@@ -48,7 +48,7 @@ double QuantoBlackCalculator::driftrho(double ttm) const
 
 double QuantoBlackCalculator::fxvega(double ttm, double rho_fx) const
 {
-	double DforwardDsigmafx = -rho_fx * stddev_ / std::sqrt(ttm);
+	double DforwardDsigmafx = -rho_fx * stddev_ * std::sqrt(ttm) * forward_;
 	double Dd1Dsigmafx = -rho_fx / std::sqrt(ttm);
 	double Dd2Dsigmafx = Dd1Dsigmafx;
 
@@ -57,7 +57,7 @@ double QuantoBlackCalculator::fxvega(double ttm, double rho_fx) const
 
 double QuantoBlackCalculator::quantocega(double ttm, double sigma_fx) const
 {
-	double DforwardDrhofx = -sigma_fx * stddev_ / std::sqrt(ttm);
+	double DforwardDrhofx = -sigma_fx * stddev_ * std::sqrt(ttm) * forward_;
 	double Dd1Drhofx = -sigma_fx / std::sqrt(ttm);
 	double Dd2Drhofx = Dd1Drhofx;
 

@@ -22,7 +22,7 @@ public:
 	double stddev() const;
 	double variance() const;
 
-private:
+protected:
 	class Builder;
 
 	void initialize(const std::shared_ptr<StrikedTypePayoff>&);

@@ -10,14 +10,21 @@ struct Results {
 	std::map<std::string, boost::any> additionalResults;
 };
 
-template <typename T>
+//PricingEngine을 추상클래스로 사용하기 위해선 template 클래스가 아니어야 함.
+//EngineBase 클래스를 template 클래스로 하고 PricingEngine 클래스는 추상클래스로 만듦.
 class PricingEngine {
 public:
 	PricingEngine() = default;
 	virtual ~PricingEngine() = default;
 	virtual void calculate() = 0;
+};
 
-	explicit PricingEngine(const std::shared_ptr<T>& instrument) : instrument_(instrument), IsCalculated_(false) { }
+template <typename T>
+class EngineBase : public PricingEngine {
+public:
+	EngineBase() = default;
+
+	explicit EngineBase(const std::shared_ptr<T>& instrument) : instrument_(instrument), IsCalculated_(false) { }
 
 	void setupInstruments(const std::shared_ptr<T>& instrument)
 	{
@@ -44,16 +51,16 @@ protected:
 //calculator_ 멤버 변수는 직접 초기화하는 변수가 아니라, 생성자에 입력되는 매개변수들을 통해 간접 초기화.
 //setupCalculator는 그를 위한 순수 가상 함수.
 template <typename T, typename AnalyticFormCalculator>
-class AnalyticPricingEngine : public PricingEngine<T> {
+class AnalyticPricingEngine : public EngineBase<T> {
 public:
 	AnalyticPricingEngine() = default;
-	AnalyticPricingEngine(const std::shared_ptr<T>& instrument) : PricingEngine<T>(instrument), IsSetup_(false) { }
+	AnalyticPricingEngine(const std::shared_ptr<T>& instrument) : EngineBase<T>(instrument), IsSetup_(false) { }
 
 	void reset()
 	{
-		PricingEngine<T>::IsCalculated_ = false;
+		EngineBase<T>::IsCalculated_ = false;
 		IsSetup_ = false;
-		PricingEngine<T>::results_.reset();
+		EngineBase<T>::results_.reset();
 	}
 
 protected:

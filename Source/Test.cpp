@@ -11,6 +11,7 @@
 #include "Settings.h"
 #include "Instrument/EuropeanOption.h"
 #include "PricingEngine/BlackEuropeanOptionEngine.h"
+#include "PricingEngine/QuantoBlackEuropeanOptionEngine.h"
 
 void TestDate()
 {
@@ -377,4 +378,145 @@ void TestBlackEuropeanEngine()
 	std::cout << "AssetOrNothing Put Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
 	std::cout << "AssetOrNothing Put Rho: " << boost::any_cast<double>(results.additionalResults["rho"]) << std::endl;
 	std::cout << "AssetOrNothing Put Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+}
+
+void TestQuantoBlackEuropeanOptionEngine()
+{
+	Settings::get().ValueDate() = Date(2020, 6, 4);
+	std::shared_ptr<DayCounter> dc = std::make_shared<DayCounter>(ACT365Fixed);
+	std::shared_ptr<ICalendar> cal = std::make_shared<Calendar>();
+	double K = 2452;
+	double sigma_fx = 0.15, rho_fx = -0.3;
+	std::shared_ptr<PlainVanillaPayoff> payoff1 = std::make_shared<PlainVanillaPayoff>(PlainVanillaPayoff(Call, K));
+	std::shared_ptr<EuropeanExercise> exercise = std::make_shared<EuropeanExercise>(EuropeanExercise(Date(2023, 3, 2)));
+	std::shared_ptr<EuropeanOption> option = std::make_shared<EuropeanOption>(EuropeanOption(cal, dc, payoff1, exercise));
+
+	QuantoBlackEuropeanOptionEngine engine(option, 2553, 0.02, 0.02, 0.015, 0.3543, sigma_fx, rho_fx);
+	engine.calculate();
+	Results results = engine.GetResults();
+
+	std::cout << std::fixed;
+	std::cout.precision(13);
+	std::cout << "PlainVanilla Call Value: " << results.value_ << std::endl;
+	std::cout << "PlainVanilla Call Delta: " << boost::any_cast<double>(results.additionalResults["delta"]) << std::endl;
+	std::cout << "PlainVanilla Call Gamma: " << boost::any_cast<double>(results.additionalResults["gamma"]) << std::endl;
+	std::cout << "PlainVanilla Call Vega: " << boost::any_cast<double>(results.additionalResults["vega"]) << std::endl;
+	std::cout << "PlainVanilla Call Theta: " << boost::any_cast<double>(results.additionalResults["theta"]) << std::endl;
+	std::cout << "PlainVanilla Call Discount Rho: " << boost::any_cast<double>(results.additionalResults["discount_rho"]) << std::endl;
+	std::cout << "PlainVanilla Call Drift Rho: " << boost::any_cast<double>(results.additionalResults["drift_rho"]) << std::endl;
+	std::cout << "PlainVanilla Call Epsilon: " << boost::any_cast<double>(results.additionalResults["epsilon"]) << std::endl;
+	std::cout << "PlainVanilla Call Fx Vega: " << boost::any_cast<double>(results.additionalResults["fx_vega"]) << std::endl;
+	std::cout << "PlainVanilla Call Quanto Cega: " << boost::any_cast<double>(results.additionalResults["quanto_cega"]) << std::endl;
+}
+
+void TestQuantoBlackEuropeanOptionEngineGreeks()
+{
+	Settings::get().ValueDate() = Date(2020, 6, 4);
+	std::shared_ptr<DayCounter> dc = std::make_shared<DayCounter>(ACT365Fixed);
+	std::shared_ptr<ICalendar> cal = std::make_shared<Calendar>();
+	double K = 2452;
+	double sigma_fx = 0.15, rho_fx = -0.3;
+	std::shared_ptr<PlainVanillaPayoff> payoff1 = std::make_shared<PlainVanillaPayoff>(PlainVanillaPayoff(Call, K));
+	std::shared_ptr<EuropeanExercise> exercise = std::make_shared<EuropeanExercise>(EuropeanExercise(Date(2023, 3, 2)));
+	std::shared_ptr<EuropeanOption> option = std::make_shared<EuropeanOption>(EuropeanOption(cal, dc, payoff1, exercise));
+
+	double S = 2553, r = 0.02, rf = 0.02, q = 0.015, sigma = 0.3543;
+	QuantoBlackEuropeanOptionEngine engine(option, S, r, rf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	Results original_results = engine.GetResults();
+
+	double up_result, down_result;
+	//delta, gamma
+	double dS = 0.01;
+	engine.setupParameter(S + dS, r, rf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S - dS, r, rf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Delta: " << boost::any_cast<double>(original_results.additionalResults["delta"]);
+	std::cout << ", Estimated Delta: " << (up_result - down_result) / (2 * dS) << std::endl;
+
+	std::cout << "Analytic Gamma: " << boost::any_cast<double>(original_results.additionalResults["gamma"]);
+	std::cout << ", Estimated Gamma: " << (up_result - 2 * original_results.value_ + down_result) / (dS * dS) << std::endl;
+
+	//vega
+	double dsigma = 0.01;
+	engine.setupParameter(S, r, rf, q, sigma + dsigma, sigma_fx, rho_fx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S , r, rf, q, sigma - dsigma, sigma_fx, rho_fx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Vega: " << boost::any_cast<double>(original_results.additionalResults["vega"]);
+	std::cout << ", Estimated Vega: " << (up_result - down_result) / (2 * dsigma) << std::endl;
+
+	//discount rho
+	double dr = 0.0001;
+	engine.setupParameter(S, r + dr, rf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S, r - dr, rf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Discount Rho: " << boost::any_cast<double>(original_results.additionalResults["discount_rho"]);
+	std::cout << ", Estimated Discount Rho: " << (up_result - down_result) / (2 * dr) << std::endl;
+
+	//drift rho
+	double drf = 0.0001;
+	engine.setupParameter(S, r, rf + drf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S, r, rf - drf, q, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Drift Rho: " << boost::any_cast<double>(original_results.additionalResults["drift_rho"]);
+	std::cout << ", Estimated Drift Rho: " << (up_result - down_result) / (2 * drf) << std::endl;
+
+	//epsilon
+	double dq = 0.0001;
+	engine.setupParameter(S, r, rf, q + dq, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S, r, rf, q - dq, sigma, sigma_fx, rho_fx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Epsilon: " << boost::any_cast<double>(original_results.additionalResults["epsilon"]);
+	std::cout << ", Estimated Epsilon: " << (up_result - down_result) / (2 * drf) << std::endl;
+
+	//fx vega
+	double dsigmafx = 0.01;
+	engine.setupParameter(S, r, rf, q, sigma, sigma_fx + dsigmafx, rho_fx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S, r, rf, q, sigma, sigma_fx - dsigmafx, rho_fx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Fx Vega: " << boost::any_cast<double>(original_results.additionalResults["fx_vega"]);
+	std::cout << ", Estimated Fx Vega: " << (up_result - down_result) / (2 * dsigmafx) << std::endl;
+
+	//quanto cega
+	double drhofx = 0.0001;
+	engine.setupParameter(S, r, rf, q, sigma, sigma_fx, rho_fx + drhofx);
+	engine.calculate();
+	up_result = engine.GetResults().value_;
+
+	engine.setupParameter(S, r, rf, q, sigma, sigma_fx, rho_fx - drhofx);
+	engine.calculate();
+	down_result = engine.GetResults().value_;
+
+	std::cout << "Analytic Quanto Cega: " << boost::any_cast<double>(original_results.additionalResults["quanto_cega"]);
+	std::cout << ", Estimated Quanto Cega: " << (up_result - down_result) / (2 * drhofx) << std::endl;
 }

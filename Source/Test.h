@@ -9,3 +9,5 @@ void TestDayCounter();
 void TestNormalDistribution();
 void TestBlackCalculator();
 void TestBlackEuropeanEngine();
+void TestQuantoBlackEuropeanOptionEngine();
+void TestQuantoBlackEuropeanOptionEngineGreeks();

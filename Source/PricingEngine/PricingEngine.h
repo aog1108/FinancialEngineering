@@ -13,6 +13,7 @@ struct Results {
 template <typename T>
 class PricingEngine {
 public:
+	PricingEngine() = default;
 	virtual ~PricingEngine() = default;
 	virtual void calculate() = 0;
 
@@ -46,7 +47,7 @@ template <typename T, typename AnalyticFormCalculator>
 class AnalyticPricingEngine : public PricingEngine<T> {
 public:
 	AnalyticPricingEngine() = default;
-	AnalyticPricingEngine(const std::shared_ptr<T>& instrument) : PricingEngine<T>(instrument) { }
+	AnalyticPricingEngine(const std::shared_ptr<T>& instrument) : PricingEngine<T>(instrument), IsSetup_(false) { }
 
 	void reset()
 	{

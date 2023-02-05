@@ -1,5 +1,5 @@
 #pragma once
-#include <Source/Math/Interpolation/Extrapolation1D.h>
+#include <Source/Math/Extrapolation/Extrapolation1D.h>
 
 class LinearExtrapolation1D : public Extrapolation1D {
 public:
@@ -8,15 +8,15 @@ public:
 	template <typename X, typename Y>
 	LinearExtrapolation1D(Location location, const X& xbegin, const X& xend, const Y& ybegin, const Y& yend) : Extrapolation1D(location)
 	{
-		impl_ = std::make_shared<LinearExtrapolation1DImpl<X, Y>>(new LinearExtrapolation1DImpl<X, Y>(xbegin, xend, ybegin, yend));
+		impl_ = std::make_shared<LinearExtrapolation1DImpl<X, Y>>(LinearExtrapolation1DImpl<X, Y>(*this, xbegin, xend, ybegin, yend));
 	}
 
 private:
 	template <typename X, typename Y>
 	class LinearExtrapolation1DImpl : public Extrapolation1D::Impl {
 	public:
-		LinearExtrapolation1DImpl(const X& xbegin, const X& xend, const Y& ybegin, const Y& yend)
-			: xbegin_(xbegin), xend_(xend), ybegin_(ybegin), yend_(yend) { }
+		LinearExtrapolation1DImpl(LinearExtrapolation1D& extrapolation, const X& xbegin, const X& xend, const Y& ybegin, const Y& yend)
+			: Extrapolation1D::Impl(extrapolation), xbegin_(xbegin), xend_(xend), ybegin_(ybegin), yend_(yend) { }
 
 		double value(double x) const override;
 		bool isValidRange(double x) const override;
@@ -40,7 +40,7 @@ template <typename X, typename Y>
 bool LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::isValidRange(double x) const
 {
 	bool is_valid = false;
-	switch (location_) {
+	switch (extrapolation_.getLocation()) {
 	case Location::Front:
 		is_valid = x <= *xbegin_ ? true : false;
 		break;
@@ -50,7 +50,6 @@ bool LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::isValidRange(double
 	default:
 		throw std::domain_error("Unknown location type.");
 	}
-
-	if (!is_valid)
-		throw std::range_error("Not valid range.");
+	
+	return is_valid;
 }

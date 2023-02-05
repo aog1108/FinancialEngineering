@@ -10,7 +10,7 @@ public:
 	template <typename X, typename Y>
 	LinearInterpolation1D(const X& xbegin, const X& xend, const Y& ybegin, const Y& yend)
 	{
-		impl_ = std::make_shared<LinearInterpolation1DImpl<X, Y>>(new LinearInterpolation1DImpl<X, Y>(xbegin, xend, ybegin, yend));
+		impl_ = std::make_shared<LinearInterpolation1DImpl<X, Y>>(LinearInterpolation1DImpl<X, Y>(xbegin, xend, ybegin, yend));
 	};
 
 private:
@@ -34,7 +34,7 @@ private:
 		double primitive(double x) const override;
 		double derivative(double x) const override;
 		double second_derivative(double x) const override;
-		void isValidRange(double x) const override;
+		bool isValidRange(double x) const override;
 
 	private:
 		void initialize();
@@ -43,20 +43,21 @@ private:
 		Y ybegin_, yend_;
 
 		std::vector<double> slopes_;
+		std::vector<double> primitives_;
 	};
 };
 
 template <typename X, typename Y>
-void LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::isValidRange(double x) const
+bool LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::isValidRange(double x) const
 {
-	if (x < *xbegin_ || x > *(xend_ - 1))
-		throw std::range_error("Not valid range");
+	bool is_valid = x < *xbegin_ || x > *(xend_ - 1) ? false : true;
+	return is_valid;
 }
 
 template <typename X, typename Y>
 void LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::isDifferentiablePoint(double x) const
 {
-	if ((auto it = std::find(xbegin_, xend_, x)) != xend_)
+	if (std::find(xbegin_, xend_, x) != xend_)
 		throw std::runtime_error("Non-differentiable point");
 }
 
@@ -68,13 +69,28 @@ void LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::initialize()
 	Y iter_y = ybegin_;
 
 	slopes_.resize(length - 1);
+	primitives_.resize(length - 1);
 	std::size_t iteration = 0;
 
+	auto x = *iter_x++;
+	auto y = *iter_y++;
+	auto next_x = *iter_x;
+	auto next_y = *iter_y;
+	double slope = (next_y - y) / (next_x - x);
+	slopes_[iteration] = slope;
+	primitives_[iteration] = 0;
+
 	while (iter_x != xend_ - 1) {
-		auto x = *iter_x++;
-		auto y = *iter_y++;
-		double slope = (*iter_y - y) / (*iter_x - x);
-		slopes_[iteration++] = slope;
+		primitives_[iteration + 1] = primitives_[iteration] + 1 / 2. * slopes_[iteration] * (next_x - x) * (next_x - x) + y * (next_x - x);
+
+		x = *iter_x++;
+		y = *iter_y++;
+		next_x = *iter_x;
+		next_y = *iter_y;
+
+		double slope = (next_y - y) / (next_x - x);
+
+		slopes_[++iteration] = slope;
 	}
 }
 
@@ -85,19 +101,18 @@ auto LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::locate(double x) co
 
 	if (it != xend_) {
 		if (it != xbegin_)
-			return it - 1 - xbegin_;
+			return std::distance(xbegin_, it - 1);
 		else
-			return 0;
+			return std::distance(xbegin_, xbegin_);
 	}
 	else
-		return (xend_ - 2) - xbegin_;
+		return std::distance(xbegin_, xend_ -2);
 
 }
 
 template <typename X, typename Y>
 double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::value(double x) const
 {
-	isValidRange(x);
 	auto location = locate(x);
 	double value = slopes_[location] * (x - *(xbegin_ + location)) + *(ybegin_ + location);
 	return value;
@@ -106,7 +121,6 @@ double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::value(double x) c
 template <typename X, typename Y>
 double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::derivative(double x) const
 {
-	isValidRange(x);
 	isDifferentiablePoint(x);
 	auto location = locate(x);
 	return slopes_[location];
@@ -115,7 +129,6 @@ double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::derivative(double
 template <typename X, typename Y>
 double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::second_derivative(double x) const
 {
-	isValidRange(x);
 	isDifferentiablePoint(x);
 	return 0.;
 }
@@ -123,5 +136,9 @@ double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::second_derivative
 template <typename X, typename Y>
 double LinearInterpolation1D::LinearInterpolation1DImpl<X, Y>::primitive(double x) const
 {
-
+	auto location = locate(x);
+	double previous_premitive = primitives_[location];
+	double dx = x - *(xbegin_ + location);
+	double value = previous_premitive + 1 / 2. * slopes_[location] * dx * dx + *(ybegin_ + location) * dx;
+	return value;
 }

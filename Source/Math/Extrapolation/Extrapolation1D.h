@@ -1,5 +1,5 @@
 #pragma once
-#include <Source/Math/Interpolation/Extrapolation.h>
+#include <Source/Math/Extrapolation/Extrapolation.h>
 #include <memory>
 
 //Extrapolation 객체 자체는 템플릿 클래스가 아니도록 만들기 위해,
@@ -13,14 +13,21 @@ public:
 	Extrapolation1D(Location location) : location_(location) { }
 
 	double value(double x) const { return impl_->value(x); }
+	bool isValidRange(double x) const { return impl_->isValidRange(x); }
+	Location getLocation() const { return location_; }
 
 protected:
 	class Impl {
 	public:
+		Impl() = default;
+		Impl(Extrapolation1D& extrapolation) : extrapolation_(extrapolation) { }
 		virtual ~Impl() = default;
 
 		virtual double value(double x) const = 0;
-		virtual void isValidRange(double x) const = 0;
+		virtual bool isValidRange(double x) const = 0;
+
+	protected:
+		Extrapolation1D& extrapolation_;
 	};
 
 	Location location_;

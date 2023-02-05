@@ -18,9 +18,9 @@ private:
 		LinearExtrapolation1DImpl(const X& xbegin, const X& xend, const Y& ybegin, const Y& yend)
 			: xbegin_(xbegin), xend_(xend), ybegin_(ybegin), yend_(yend) { }
 
-		double value(double x) override;
-		bool isValidRange(double x) override;
-
+		double value(double x) const override;
+		bool isValidRange(double x) const override;
+		
 	private:
 		X xbegin_, xend_;
 		Y ybegin_, yend_;
@@ -28,7 +28,7 @@ private:
 };
 
 template <typename X, typename Y>
-double LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::value(double x)
+double LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::value(double x) const
 {
 	isValidRange(x);
 	double slope = (*(yend_ - 1) - *ybegin_) / (*(xend_ - 1) - *xbegin_);
@@ -37,7 +37,7 @@ double LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::value(double x)
 }
 
 template <typename X, typename Y>
-bool LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::isValidRange(double x)
+bool LinearExtrapolation1D::LinearExtrapolation1DImpl<X, Y>::isValidRange(double x) const
 {
 	bool is_valid = false;
 	switch (location_) {

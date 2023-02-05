@@ -18,8 +18,8 @@ private:
 	public:
 		FlatExtrapolation1DImpl(const X& x, const Y& y) : x_(x), y_(y) { }
 		
-		double value(double x) override;
-		void isValidRange(double x) override;
+		double value(double x) const override;
+		void isValidRange(double x) const override;
 
 	private:
 		X x_;
@@ -28,14 +28,14 @@ private:
 };
 
 template <typename X, typename Y>
-double FlatExtrapolation1D::FlatExtrapolation1DImpl<X, Y>::value(double x)
+double FlatExtrapolation1D::FlatExtrapolation1DImpl<X, Y>::value(double x) const
 {
 	isValidRange(x);
 	return y_;
 }
 
 template <typename X, typename Y>
-void FlatExtrapolation1D::FlatExtrapolation1DImpl<X, Y>::isValidRange(double x)
+void FlatExtrapolation1D::FlatExtrapolation1DImpl<X, Y>::isValidRange(double x) const
 {
 	bool is_valid = false;
 	switch (location_) {

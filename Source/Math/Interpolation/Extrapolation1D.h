@@ -12,15 +12,15 @@ public:
 	Extrapolation1D() = default;
 	Extrapolation1D(Location location) : location_(location) { }
 
-	double value(double x) { return impl_->value(x); }
+	double value(double x) const { return impl_->value(x); }
 
 protected:
 	class Impl {
 	public:
 		virtual ~Impl() = default;
 
-		virtual double value(double x) = 0;
-		virtual void isValidRange(double x) = 0;
+		virtual double value(double x) const = 0;
+		virtual void isValidRange(double x) const = 0;
 	};
 
 	Location location_;

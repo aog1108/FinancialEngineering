@@ -11,3 +11,4 @@ void TestBlackCalculator();
 void TestBlackEuropeanEngine();
 void TestQuantoBlackEuropeanOptionEngine();
 void TestQuantoBlackEuropeanOptionEngineGreeks();
+void TestEstimator1D();

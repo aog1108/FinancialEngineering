@@ -12,6 +12,10 @@
 #include "Instrument/EuropeanOption.h"
 #include "PricingEngine/BlackEuropeanOptionEngine.h"
 #include "PricingEngine/QuantoBlackEuropeanOptionEngine.h"
+#include <Source/Math/Estimator1D.h>
+#include <Source/Math/Interpolation/LinearInterpolation1D.h>
+#include <Source/Math/Extrapolation/FlatExtrapolation1D.h>
+#include <Source/Math/Extrapolation/LinearExtrapolation1D.h>
 
 void TestDate()
 {
@@ -492,7 +496,7 @@ void TestQuantoBlackEuropeanOptionEngineGreeks()
 	down_result = engine.GetResults().value_;
 
 	std::cout << "Analytic Epsilon: " << boost::any_cast<double>(original_results.additionalResults["epsilon"]);
-	std::cout << ", Estimated Epsilon: " << (up_result - down_result) / (2 * drf) << std::endl;
+	std::cout << ", Estimated Epsilon: " << (up_result - down_result) / (2 * dq) << std::endl;
 
 	//fx vega
 	double dsigmafx = 0.01;
@@ -519,4 +523,81 @@ void TestQuantoBlackEuropeanOptionEngineGreeks()
 
 	std::cout << "Analytic Quanto Cega: " << boost::any_cast<double>(original_results.additionalResults["quanto_cega"]);
 	std::cout << ", Estimated Quanto Cega: " << (up_result - down_result) / (2 * drhofx) << std::endl;
+}
+
+void TestEstimator1D()
+{
+	std::vector<double> x{ 1.0, 2.0, 3.0, 4.0 };
+	std::vector<double> y{ 3.0, 4.0, 1.0, 5.0 };
+
+	std::shared_ptr<FlatExtrapolation1D> flat_extrapolation1
+		= std::make_shared<FlatExtrapolation1D>(FlatExtrapolation1D(Extrapolation1D::Location::Front, x.begin(), y.begin()));
+	std::shared_ptr<FlatExtrapolation1D> flat_extrapolation2
+		= std::make_shared<FlatExtrapolation1D>(FlatExtrapolation1D(Extrapolation1D::Location::End, x.end() - 1, y.end() - 1));
+	std::shared_ptr<LinearInterpolation1D> linear_interpolation
+		= std::make_shared<LinearInterpolation1D>(LinearInterpolation1D(x.begin(), x.end(), y.begin(), y.end()));
+
+	Estimator1D estimator(flat_extrapolation1, linear_interpolation, flat_extrapolation2);
+
+	std::vector<double> inputs{ 0.5, 1.2, 4.2, 3.7, 4.0, 2.0, 5.5 };
+	std::cout << "Value" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.value(input) << std::endl;
+	}
+	std::cout << std::endl;
+
+	inputs = { 1.2, 2.2, 3.4, 3.7 };
+	std::cout << "Derivative" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.derivative(input) << std::endl;
+	}
+	std::cout << std::endl;
+
+	inputs = { 1.2, 2.2, 3.4, 3.7 };
+	std::cout << "Second Derivative" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.second_derivative(input) << std::endl;
+	}
+
+	std::cout << std::endl;
+	inputs = { 1.2, 2.2, 3.4, 3.7, 4.0 };
+	std::cout << "Primitive" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.primitive(input) << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::shared_ptr<LinearExtrapolation1D> linear_extrapolation1 =
+		std::make_shared<LinearExtrapolation1D>(LinearExtrapolation1D(Extrapolation1D::Location::Front, x.begin(), x.begin() + 2, y.begin(), y.begin() + 2));
+	std::shared_ptr<LinearExtrapolation1D> linear_extrapolation2 =
+		std::make_shared<LinearExtrapolation1D>(LinearExtrapolation1D(Extrapolation1D::Location::End, x.end() - 2, x.end(), y.end() - 2, y.end()));
+
+	estimator = Estimator1D(linear_extrapolation1, linear_interpolation, linear_extrapolation2);
+
+	inputs = { 0.5, 1.2, 4.2, 3.7, 4.0, 2.0, 5.5 };
+	std::cout << "Value" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.value(input) << std::endl;
+	}
+	std::cout << std::endl;
+
+	inputs = { 1.2, 2.2, 3.4, 3.7 };
+	std::cout << "Derivative" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.derivative(input) << std::endl;
+	}
+	std::cout << std::endl;
+
+	inputs = { 1.2, 2.2, 3.4, 3.7 };
+	std::cout << "Second Derivative" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.second_derivative(input) << std::endl;
+	}
+
+	std::cout << std::endl;
+	inputs = { 1.2, 2.2, 3.4, 3.7, 4.0 };
+	std::cout << "Primitive" << std::endl;
+	for (const auto& input : inputs) {
+		std::cout << input << ": " << estimator.primitive(input) << std::endl;
+	}
 }

@@ -7,7 +7,7 @@
 //Impl 클래스를 상속받은 클래스를 템플릿 클래스로 만듦.
 class Extrapolation1D : public Extrapolation {
 public:
-	enum class Location { Front, End };
+	enum Location { Front, End };
 	
 	Extrapolation1D() = default;
 	Extrapolation1D(Location location) : location_(location) { }

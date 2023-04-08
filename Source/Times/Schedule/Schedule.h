@@ -13,10 +13,6 @@ enum class KindsOfDate;
 enum class DrivenDirection;
 enum class StubRule;
 
-//Schedule Test
-//여러 error throw runtime error로 전환하기
-//Cashflow fixed / floating 통합해서 하나의 객체에서 관리되도록 바꾸기
-
 using DateSchedule = std::map<KindsOfDate, std::vector<Date>>;
 
 class Schedule {

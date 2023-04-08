@@ -73,7 +73,7 @@ std::shared_ptr<DayCounter::Impl> DayCounter::implementation(DayCountConvention 
 		impl.reset(new DayCounter::ThirtyE360Impl);
 		break;
 	default:
-		throw std::domain_error("Unknown Day Count Convention.");
+		throw std::runtime_error("Unknown Day Count Convention.");
 		break;
 	}
 	return impl;

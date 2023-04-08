@@ -45,7 +45,7 @@ bool FlatExtrapolation1D::FlatExtrapolation1DImpl<X, Y>::isValidRange(double x) 
 		is_valid = x >= *x_ ? true : false;
 		break;
 	default:
-		throw std::domain_error("Unknown location type.");
+		throw std::runtime_error("Unknown location type.");
 	}
 
 	return is_valid;

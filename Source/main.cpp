@@ -18,7 +18,8 @@ int main() {
 	//TestBlackCalculator();
 	//TestQuantoBlackEuropeanOptionEngine();
 	//TestQuantoBlackEuropeanOptionEngineGreeks();
-	TestEstimator1D();
+	//TestEstimator1D();	
+	TestSchedule();
 
 	return 0;
 }

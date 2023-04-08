@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <Source/Times/Schedule/Schedule.h>
 
 void TestDate();
 void TestBoostGregorian();
@@ -12,3 +13,7 @@ void TestBlackEuropeanEngine();
 void TestQuantoBlackEuropeanOptionEngine();
 void TestQuantoBlackEuropeanOptionEngineGreeks();
 void TestEstimator1D();
+void TestSchedule();
+
+void printDateSchedule(const DateSchedule&);
+std::string KindsOfDateToString(KindsOfDate);

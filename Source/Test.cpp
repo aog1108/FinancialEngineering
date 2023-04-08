@@ -16,6 +16,10 @@
 #include <Source/Math/Interpolation/LinearInterpolation1D.h>
 #include <Source/Math/Extrapolation/FlatExtrapolation1D.h>
 #include <Source/Math/Extrapolation/LinearExtrapolation1D.h>
+#include <Source/Times/Schedule/Schedule.h>
+#include <Source/Times/Schedule/Period.h>
+#include <Source/Times/Schedule/GenerationRule.h>
+#include <Source/Times/Schedule/Relation.h>
 
 void TestDate()
 {
@@ -599,5 +603,166 @@ void TestEstimator1D()
 	std::cout << "Primitive" << std::endl;
 	for (const auto& input : inputs) {
 		std::cout << input << ": " << estimator.primitive(input) << std::endl;
+	}
+}
+
+void TestSchedule()
+{
+	std::vector<Date> fixing_holiday = { Date(2023, 6, 23), Date(2023, 9, 22) };
+	std::vector<Date> payment_holiday = { Date(2023, 6, 26), Date(2023, 9, 25) };
+
+	std::shared_ptr<ICalendar> fixing_calendar = std::make_shared<Calendar>(Calendar(fixing_holiday));
+	std::shared_ptr<ICalendar> calculation_calendar = std::make_shared<Calendar>(Calendar(payment_holiday));
+	std::shared_ptr<ICalendar> payment_calendar = calculation_calendar;
+
+	std::shared_ptr<Period> driven_period = std::make_shared<Month>(Month(3));
+
+	Schedule::BusinessDayConventionMapping mapping;
+	mapping[KindsOfDate::PaymentDate] = ModifiedFollowing;
+	mapping[KindsOfDate::FixingDate] = Preceding;
+	mapping[KindsOfDate::CalculationStartDate] = ModifiedFollowing;
+	mapping[KindsOfDate::CalculationEndDate] = ModifiedFollowing;
+
+	std::shared_ptr<Period> deduce_period = std::make_shared<Day>(Day(-1));
+	std::shared_ptr<Relation> relation1 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationStartDate, KindsOfDate::CalculationEndDate});
+	std::shared_ptr<Relation> relation2 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationEndDate, KindsOfDate::PaymentDate});
+	std::shared_ptr<Relation> relation3 = std::make_shared<DeducedFrom>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::FixingDate, KindsOfDate::CalculationStartDate}, deduce_period);
+
+	ScheduleFactory schedule_factory;
+	schedule_factory.addCalendar(KindsOfDate::FixingDate, fixing_calendar);
+	schedule_factory.addCalendar(KindsOfDate::CalculationStartDate, calculation_calendar);
+	schedule_factory.addCalendar(KindsOfDate::CalculationEndDate, calculation_calendar);
+	schedule_factory.addCalendar(KindsOfDate::PaymentDate, payment_calendar);
+	schedule_factory.withDrivenDate(KindsOfDate::PaymentDate);
+	schedule_factory.withDrivenPeriod(driven_period);
+	schedule_factory.withDrivenDirection(DrivenDirection::Forward);
+	schedule_factory.withStubRule(StubRule::ShortStub);
+	schedule_factory.withBusinessDayConventionMapping(mapping);
+	schedule_factory.withFixedinArrears(false);
+	schedule_factory.withEndOfMonth(false);
+	schedule_factory.addRelation(relation1);
+	schedule_factory.addRelation(relation2);
+	schedule_factory.addRelation(relation3);
+
+	Schedule schedule = Schedule(schedule_factory);
+
+	DateSchedule date_schedule = schedule.generateSchedule(Date(2023, 3, 24), Date(2025, 3, 24));
+
+	printDateSchedule(date_schedule);
+	
+	date_schedule = schedule.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+
+	std::cout << std::endl;
+	printDateSchedule(date_schedule);
+
+	std::shared_ptr<Period> driven_period2 = std::make_shared<Month>(Month(-3));
+	schedule_factory.withDrivenPeriod(driven_period2);
+	schedule_factory.withDrivenDirection(DrivenDirection::Backward);
+	schedule_factory.withStubRule(StubRule::LongStub);
+
+	Schedule schedule2 = Schedule(schedule_factory);
+
+	date_schedule = schedule2.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+
+	std::cout << std::endl;
+	printDateSchedule(date_schedule);
+
+	schedule_factory.withDrivenPeriod(driven_period);
+	schedule_factory.withDrivenDirection(DrivenDirection::Forward);
+	schedule_factory.withStubRule(StubRule::ShortStub);
+	Schedule schedule3 = Schedule(schedule_factory);
+
+	date_schedule = schedule3.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+
+	std::cout << std::endl;
+	printDateSchedule(date_schedule);
+
+	schedule_factory.withDrivenPeriod(driven_period2);
+	schedule_factory.withDrivenDirection(DrivenDirection::Backward);
+	schedule_factory.withStubRule(StubRule::ShortStub);
+	Schedule schedule4 = Schedule(schedule_factory);
+
+	date_schedule = schedule4.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+
+	std::cout << std::endl;
+	printDateSchedule(date_schedule);
+
+	schedule_factory.withFixedinArrears(true);
+	schedule_factory.withDrivenDate(KindsOfDate::FixingDate);
+	schedule_factory.withDrivenPeriod(driven_period);
+	schedule_factory.withDrivenDirection(DrivenDirection::Forward);
+
+	std::shared_ptr<Period> deduced_period2 = std::make_shared<Day>(Day(4));
+	std::shared_ptr<Period> deduced_period3 = std::make_shared<Day>(Day(-2));
+
+	std::shared_ptr<Relation> relation4 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationStartDate, KindsOfDate::CalculationEndDate});
+	std::shared_ptr<Relation> relation5 = std::make_shared<DeducedFrom>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationEndDate, KindsOfDate::FixingDate}, deduced_period3);
+	std::shared_ptr<Relation> relation6 = std::make_shared<DeducedFrom>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::PaymentDate, KindsOfDate::FixingDate}, deduced_period2);
+
+	schedule_factory.resetRelation();
+	schedule_factory.addRelation(relation4);
+	schedule_factory.addRelation(relation5);
+	schedule_factory.addRelation(relation6);
+
+	Schedule schedule5 = Schedule(schedule_factory);
+
+	date_schedule = schedule5.generateSchedule(Date(2023, 3, 27), Date(2025, 7, 27));
+
+	std::cout << std::endl;
+	printDateSchedule(date_schedule);
+
+	schedule_factory.withFixedinArrears(false);
+
+	std::shared_ptr<Relation> relation7 = std::make_shared<DeducedFrom>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationStartDate, KindsOfDate::FixingDate}, 
+		std::make_shared<Day>(Day(1)));
+	std::shared_ptr<Relation> relation8 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationEndDate, KindsOfDate::CalculationStartDate});
+	std::shared_ptr<Relation> relation9 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::PaymentDate, KindsOfDate::CalculationEndDate});
+	schedule_factory.resetRelation();
+	schedule_factory.addRelation(relation7);
+	schedule_factory.addRelation(relation8);
+	schedule_factory.addRelation(relation9);
+	
+	Schedule schedule6 = Schedule(schedule_factory);
+
+	date_schedule = schedule6.generateSchedule(Date(2023, 3, 27), Date(2025, 7, 27));
+
+	std::cout << std::endl;
+	printDateSchedule(date_schedule);
+}
+
+void printDateSchedule(const DateSchedule& date_schedule)
+{
+	for (const auto& schedule : date_schedule) {
+		std::cout << KindsOfDateToString(schedule.first) << "|";
+	}
+	std::cout << std::endl;
+	for (auto i = 0; i != date_schedule.begin()->second.size(); ++i) {
+		for (const auto& schedule : date_schedule) {
+			std::cout << schedule.second[i] << "|";
+		}
+		std::cout << std::endl;
+	}
+}
+
+std::string KindsOfDateToString(KindsOfDate kinds_of_date)
+{
+	switch (kinds_of_date) {
+	case (KindsOfDate::CalculationStartDate):
+		return "CalculationStartDate";
+	case (KindsOfDate::CalculationEndDate):
+		return "CalculationEndDate";
+	case (KindsOfDate::FixingDate):
+		return "FixingDate";
+	case (KindsOfDate::PaymentDate):
+		return "PaymentDate";
 	}
 }

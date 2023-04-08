@@ -27,6 +27,7 @@ bool Calendar::isWeekEnd(const Date& d) const
 
 bool Calendar::isEndOfMonth(const Date& d) const
 {
+	//휴일 고려한 EndOfMonth ~ 휴일 고려하지 않은 EndOfMonth에 있는 날짜를 전부 EndOfMonth로 간주
 	if ((d - EndOfMonth(*this, d)).days() >= 0 && (d.end_of_month() - d).days() >= 0)
 		return true;
 	else

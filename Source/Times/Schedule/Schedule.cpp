@@ -78,6 +78,6 @@ DateSchedule Schedule::generateSchedule(const Date& effective_date, const Date& 
 
 void Schedule::resetGenerationMapping() const
 {
-	for (auto date = 0; date != static_cast<int>(KindsOfDate::Count); ++date)
-		generation_complete_mapping_[static_cast<KindsOfDate>(date)] = false;
+	for (std::vector<std::shared_ptr<Relation>>::const_iterator relation = relation_list_.begin(); relation != relation_list_.end(); ++relation)
+		generation_complete_mapping_[(*relation)->getRelationPair().first] = false;
 }

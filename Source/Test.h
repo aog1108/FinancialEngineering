@@ -14,6 +14,7 @@ void TestQuantoBlackEuropeanOptionEngine();
 void TestQuantoBlackEuropeanOptionEngineGreeks();
 void TestEstimator1D();
 void TestSchedule();
+void TestDateScheduleConverter();
 
 void printDateSchedule(const DateSchedule&);
 std::string KindsOfDateToString(KindsOfDate);

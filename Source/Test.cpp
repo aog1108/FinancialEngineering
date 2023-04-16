@@ -20,6 +20,8 @@
 #include <Source/Times/Schedule/Period.h>
 #include <Source/Times/Schedule/GenerationRule.h>
 #include <Source/Times/Schedule/Relation.h>
+#include <Source/Instrument/Cashflow/Cashflow.h>
+#include <Source/Times/Schedule/DateScheduleConverter/DateScheduleConverter.h>
 
 void TestDate()
 {
@@ -750,6 +752,62 @@ void printDateSchedule(const DateSchedule& date_schedule)
 			std::cout << schedule.second[i] << "|";
 		}
 		std::cout << std::endl;
+	}
+}
+
+void TestDateScheduleConverter()
+{
+	std::vector<Date> fixing_holiday = { Date(2023, 6, 23), Date(2023, 9, 22) };
+	std::vector<Date> payment_holiday = { Date(2023, 6, 26), Date(2023, 9, 25) };
+
+	std::shared_ptr<ICalendar> fixing_calendar = std::make_shared<Calendar>(Calendar(fixing_holiday));
+	std::shared_ptr<ICalendar> calculation_calendar = std::make_shared<Calendar>(Calendar(payment_holiday));
+	std::shared_ptr<ICalendar> payment_calendar = calculation_calendar;
+
+	std::shared_ptr<Period> driven_period = std::make_shared<Month>(Month(3));
+
+	Schedule::BusinessDayConventionMapping mapping;
+	mapping[KindsOfDate::PaymentDate] = ModifiedFollowing;
+	mapping[KindsOfDate::FixingDate] = Preceding;
+	mapping[KindsOfDate::CalculationStartDate] = ModifiedFollowing;
+	mapping[KindsOfDate::CalculationEndDate] = ModifiedFollowing;
+
+	std::shared_ptr<Period> deduce_period = std::make_shared<Day>(Day(-1));
+	std::shared_ptr<Relation> relation1 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationStartDate, KindsOfDate::CalculationEndDate});
+	std::shared_ptr<Relation> relation2 = std::make_shared<Equalto>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::CalculationEndDate, KindsOfDate::PaymentDate});
+	std::shared_ptr<Relation> relation3 = std::make_shared<DeducedFrom>(
+		std::pair<KindsOfDate, KindsOfDate>{KindsOfDate::FixingDate, KindsOfDate::CalculationStartDate}, deduce_period);
+
+	ScheduleFactory schedule_factory;
+	schedule_factory.addCalendar(KindsOfDate::FixingDate, fixing_calendar);
+	schedule_factory.addCalendar(KindsOfDate::CalculationStartDate, calculation_calendar);
+	schedule_factory.addCalendar(KindsOfDate::CalculationEndDate, calculation_calendar);
+	schedule_factory.addCalendar(KindsOfDate::PaymentDate, payment_calendar);
+	schedule_factory.withDrivenDate(KindsOfDate::PaymentDate);
+	schedule_factory.withDrivenPeriod(driven_period);
+	schedule_factory.withDrivenDirection(DrivenDirection::Forward);
+	schedule_factory.withStubRule(StubRule::ShortStub);
+	schedule_factory.withBusinessDayConventionMapping(mapping);
+	schedule_factory.withFixedinArrears(false);
+	schedule_factory.withEndOfMonth(false);
+	schedule_factory.addRelation(relation1);
+	schedule_factory.addRelation(relation2);
+	schedule_factory.addRelation(relation3);
+
+	Schedule schedule = Schedule(schedule_factory);
+
+	DateSchedule date_schedule = schedule.generateSchedule(Date(2023, 3, 24), Date(2025, 3, 24));
+
+	DateScheduleConverter converter;
+	std::shared_ptr<DayCounter> act365 = std::make_shared<DayCounter>(ACT365Fixed);
+
+	std::vector<std::shared_ptr<Cashflow>> cashflows = converter.FixedRateCashflows(date_schedule, act365, 0.035);
+
+	for (auto i = 0; i != cashflows.size(); ++i) {
+		std::cout << date_schedule.at(KindsOfDate::PaymentDate)[i] << ": " << cashflows[i]->CalculationPeriod() << ", "
+			<< cashflows[i]->amount() << std::endl;
 	}
 }
 

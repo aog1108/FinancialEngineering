@@ -22,7 +22,6 @@ public:
 	using BusinessDayConventionMapping = std::map<KindsOfDate, BusinessDayConvention>;
 
 	Schedule() = default;
-	virtual ~Schedule() = default;
 	Schedule(const CalendarMapping& calendar_mapping,
 		const std::shared_ptr<Period>& driven_period,
 		KindsOfDate driven_date,
@@ -35,7 +34,7 @@ public:
 
 	//각 Date에 대한 vector 생성
 	DateSchedule generateSchedule(const Date& effective_date, const Date& termination_date) const;
-	
+
 protected:
 	void resetGenerationMapping() const;
 	

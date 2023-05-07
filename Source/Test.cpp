@@ -7,11 +7,11 @@
 #include "Times/DateHandling.h"
 #include "Times/JointCalendar.h"
 #include "Math/NormalDistribution.h"
-#include "PricingEngine/BlackCalculator.h"
+#include "PricingEngine/Derivative/BlackCalculator.h"
 #include "Settings.h"
 #include "Instrument/EuropeanOption.h"
-#include "PricingEngine/BlackEuropeanOptionEngine.h"
-#include "PricingEngine/QuantoBlackEuropeanOptionEngine.h"
+#include "PricingEngine/Derivative/BlackEuropeanOptionEngine.h"
+#include "PricingEngine/Derivative/QuantoBlackEuropeanOptionEngine.h"
 #include <Source/Math/Estimator1D.h>
 #include <Source/Math/Interpolation/LinearInterpolation1D.h>
 #include <Source/Math/Extrapolation/FlatExtrapolation1D.h>
@@ -651,11 +651,17 @@ void TestSchedule()
 
 	Schedule schedule = Schedule(schedule_factory);
 
-	DateSchedule date_schedule = schedule.generateSchedule(Date(2023, 3, 24), Date(2025, 3, 24));
+	ScheduleInput schedule_input;
+	schedule_input.effective_date_ = Date(2023, 3, 24);
+	schedule_input.termination_date_ = Date(2025, 3, 24);
+
+	DateSchedule date_schedule = schedule.generateSchedule(schedule_input);
 
 	printDateSchedule(date_schedule);
+
+	schedule_input.termination_date_ = Date(2025, 7, 24);
 	
-	date_schedule = schedule.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+	date_schedule = schedule.generateSchedule(schedule_input);
 
 	std::cout << std::endl;
 	printDateSchedule(date_schedule);
@@ -667,7 +673,7 @@ void TestSchedule()
 
 	Schedule schedule2 = Schedule(schedule_factory);
 
-	date_schedule = schedule2.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+	date_schedule = schedule2.generateSchedule(schedule_input);
 
 	std::cout << std::endl;
 	printDateSchedule(date_schedule);
@@ -677,7 +683,7 @@ void TestSchedule()
 	schedule_factory.withStubRule(StubRule::ShortStub);
 	Schedule schedule3 = Schedule(schedule_factory);
 
-	date_schedule = schedule3.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+	date_schedule = schedule3.generateSchedule(schedule_input);
 
 	std::cout << std::endl;
 	printDateSchedule(date_schedule);
@@ -687,7 +693,7 @@ void TestSchedule()
 	schedule_factory.withStubRule(StubRule::ShortStub);
 	Schedule schedule4 = Schedule(schedule_factory);
 
-	date_schedule = schedule4.generateSchedule(Date(2023, 3, 24), Date(2025, 7, 24));
+	date_schedule = schedule4.generateSchedule(schedule_input);
 
 	std::cout << std::endl;
 	printDateSchedule(date_schedule);
@@ -713,8 +719,12 @@ void TestSchedule()
 	schedule_factory.addRelation(relation6);
 
 	Schedule schedule5 = Schedule(schedule_factory);
+	schedule_input.effective_date_ = Date(2023, 3, 25);
+	schedule_input.termination_date_ = Date(2025, 7, 25);
+	schedule_input.initial_in_advance_fixing_date_ = Date(2023, 3, 27);
+	schedule_input.last_in_arrears_fixing_date_ = Date(2025, 7, 27);
 
-	date_schedule = schedule5.generateSchedule(Date(2023, 3, 27), Date(2025, 7, 27));
+	date_schedule = schedule5.generateSchedule(schedule_input);
 
 	std::cout << std::endl;
 	printDateSchedule(date_schedule);
@@ -735,7 +745,7 @@ void TestSchedule()
 	
 	Schedule schedule6 = Schedule(schedule_factory);
 
-	date_schedule = schedule6.generateSchedule(Date(2023, 3, 27), Date(2025, 7, 27));
+	date_schedule = schedule6.generateSchedule(schedule_input);
 
 	std::cout << std::endl;
 	printDateSchedule(date_schedule);
@@ -798,7 +808,11 @@ void TestDateScheduleConverter()
 
 	Schedule schedule = Schedule(schedule_factory);
 
-	DateSchedule date_schedule = schedule.generateSchedule(Date(2023, 3, 24), Date(2025, 3, 24));
+	ScheduleInput schedule_input;
+	schedule_input.effective_date_ = Date(2023, 3, 24);
+	schedule_input.termination_date_ = Date(2025, 3, 24);
+
+	DateSchedule date_schedule = schedule.generateSchedule(schedule_input);
 
 	DateScheduleConverter converter;
 	std::shared_ptr<DayCounter> act365 = std::make_shared<DayCounter>(ACT365Fixed);

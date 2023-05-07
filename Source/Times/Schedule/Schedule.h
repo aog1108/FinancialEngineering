@@ -15,6 +15,13 @@ enum class StubRule;
 
 using DateSchedule = std::map<KindsOfDate, std::vector<Date>>;
 
+struct ScheduleInput {
+	Date effective_date_;
+	Date termination_date_;
+	Date initial_in_advance_fixing_date_;
+	Date last_in_arrears_fixing_date_;
+};
+
 class Schedule {
 public:
 	using CalendarMapping = std::map<KindsOfDate, std::shared_ptr<ICalendar>>;
@@ -33,23 +40,13 @@ public:
 		bool is_eom = false);
 
 	//각 Date에 대한 vector 생성
-	DateSchedule generateSchedule(const Date& effective_date, const Date& termination_date) const;
+	DateSchedule generateSchedule(const ScheduleInput& schedule_input) const;
 
 protected:
-	void resetGenerationMapping() const;
-	
-	CalendarMapping calendar_mapping_;
-	std::shared_ptr<Period> driven_period_;
-	KindsOfDate driven_date_;
-	DrivenDirection driven_direction_;
-	StubRule stub_rule_;
-	BusinessDayConventionMapping dc_mapping_;
-	bool fixed_in_arrears_;
-	bool is_eom_;
+	class Impl;
+	class FixingDateDrivenImpl;
 
-	RelationList relation_list_;
-
-	mutable std::map<KindsOfDate, bool> generation_complete_mapping_;
+	std::shared_ptr<Impl> impl_;
 };
 
 class ScheduleFactory {
